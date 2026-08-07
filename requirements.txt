@@ -1,0 +1,3 @@
+# requirements.txt
+# Lista de dependencias do projeto (a definir pela equipe)
+# Exemplo: pandas, scikit-learn, streamlit, matplotlib
