@@ -24,10 +24,6 @@ Pastas principais do projeto:
 - `tests/`: testes unitarios, de integracao e de aceitacao.
 - `.github/`: automacoes, templates e configuracoes do GitHub Projects.
 
-## Backlog e organizacao
-
-O backlog inicial do projeto esta documentado em [docs/backlog.md](docs/backlog.md). Ele organiza as issues por epico, milestone e labels para cobrir a base do repositório, a engenharia de dados, o fluxo de ML, a camada geoespacial, o dashboard e o deploy.
-
 ## Fluxo previsto
 
 O repositorio foi organizado para sustentar este fluxo de trabalho:
