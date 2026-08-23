@@ -1,3 +1,22 @@
 # requirements.txt
 # Lista de dependencias do projeto (a definir pela equipe)
-# Exemplo: pandas, scikit-learn, streamlit, matplotlib
+# to install pip install -r requirements.txt
+
+# Ingestão e manipulação de dados
+pandas>=2.0.0
+openpyxl>=3.1.0  # Para suporte a arquivos .xlsx (SNV do DNIT)
+xlrd>=2.0.1      # Para suporte a arquivos .xls legados (SNV do DNIT)
+
+# Download de arquivos do Google Drive
+gdown>=4.7.0
+
+# Análise de Dados e Estatística (EDA)
+numpy>=1.24.0
+scipy>=1.10.0
+
+# Visualização de Dados
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# Opcional / Performance
+pyarrow>=12.0.0  # Acelera processamento de datasets maiores
