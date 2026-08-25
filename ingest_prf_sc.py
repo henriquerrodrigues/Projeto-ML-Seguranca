@@ -53,16 +53,16 @@ OUT_DIR = DATA_DIR / "processed"
 # quanto mais anos, mais volume para o treino, mas atenção a mudanças de
 # metodologia de coleta da PRF ao longo do tempo.
 GDRIVE_FILE_IDS: dict[int, str] = {
-    2026: "1A3IirNm0AzRaSosA1IS94DOVmvKsn0Ol",
+    # 2026: "1A3IirNm0AzRaSosA1IS94DOVmvKsn0Ol",
     2025: "1-G3MdmHBt6CprDwcW99xxC4BZ2DU5ryR",
     2024: "14lB0vqMFkaZj8HZ44b0njYgxs9nAN8KO",
     2023: "1-WO3SfNrwwZ5_l7fRTiwBKRw7mi1-HUq",
     2022: "1PRQjuV5gOn_nn6UNvaJyVURDIfbSAK4-",
     2021: "12xH8LX9aN2gObR766YN3cMcuycwyCJDz",
     2020: "1esu6IiH5TVTxFoedv6DBGDd01Gvi8785",
-    2019: "1pN3fn2wY34GH6cY-gKfbxRJJBFE0lb_l",
-    2018: "1cM4IgGMIiR-u4gBIH5IEe3DcvBvUzedi",
-    2017: "1HPLWt5f_l4RIX3tKjI4tUXyZOev52W0N",
+    # 2019: "1pN3fn2wY34GH6cY-gKfbxRJJBFE0lb_l",
+    # 2018: "1cM4IgGMIiR-u4gBIH5IEe3DcvBvUzedi",
+    # 2017: "1HPLWt5f_l4RIX3tKjI4tUXyZOev52W0N",
 }
 
 UF_ALVO = "SC"
