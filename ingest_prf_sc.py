@@ -235,9 +235,9 @@ def normalize_prf_values(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-# ----------------------------------------------------------------------------
-# 2) FILTRO SC / TODAS AS BRs
-# ----------------------------------------------------------------------------
+# Rodovias Federais oficiais com malha operacional em SC
+# (Descarta apenas BR 0 fora de rodovia federal e BRs 477 e 475 com 1 ocorrência isolada)
+BRS_VALIDAS_SC = [101, 282, 470, 280, 116, 163, 153, 480, 158, 285]
 
 def filter_sc_brs(df: pd.DataFrame) -> pd.DataFrame:
     df = normalize_prf_values(df)
@@ -245,6 +245,9 @@ def filter_sc_brs(df: pd.DataFrame) -> pd.DataFrame:
     mask = pd.Series(True, index=df.index)
     if "uf" in df.columns:
         mask &= df["uf"].astype(str).str.upper().str.strip() == UF_ALVO
+    # Mantém estritamente as 10 BRs com cobertura e malha operacional em SC
+    if "br" in df.columns:
+        mask &= df["br"].isin(BRS_VALIDAS_SC)
     return df[mask].reset_index(drop=True)
 
 

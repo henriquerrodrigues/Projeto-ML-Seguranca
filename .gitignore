@@ -25,7 +25,6 @@ Thumbs.db
 data/raw/*
 data/processed/*
 data/interim/*
-models/*
 notebooks/*.html
 
 !data/.gitkeep
