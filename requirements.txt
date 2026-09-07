@@ -1,22 +1,30 @@
 # requirements.txt
-# Lista de dependencias do projeto (a definir pela equipe)
-# to install pip install -r requirements.txt
+# Dependências do Projeto ML Segurança Viária (PRF SC)
+# Para instalar: pip install -r requirements.txt
 
 # Ingestão e manipulação de dados
 pandas>=2.0.0
 openpyxl>=3.1.0  # Para suporte a arquivos .xlsx (SNV do DNIT)
 xlrd>=2.0.1      # Para suporte a arquivos .xls legados (SNV do DNIT)
+pyarrow>=12.0.0  # Processamento otimizado de datasets
 
 # Download de arquivos do Google Drive
 gdown>=4.7.0
 
-# Análise de Dados e Estatística (EDA)
+# Computação Numérica e Estatística
 numpy>=1.24.0
 scipy>=1.10.0
 
-# Visualização de Dados
+# Visualização de Dados e Tabelas
 matplotlib>=3.7.0
 seaborn>=0.12.0
+jinja2>=3.1.0  # Necessário para renderização do pandas DataFrame.style
 
-# Opcional / Performance
-pyarrow>=12.0.0  # Acelera processamento de datasets maiores
+# Machine Learning e MLOps
+scikit-learn>=1.3.0
+xgboost>=2.0.0
+lightgbm>=4.0.0
+joblib>=1.3.0
+
+# Ambiente Interativo e Notebooks
+ipykernel>=6.25.0
