@@ -1,10 +1,10 @@
 """
-Script de ingestão — Pontos Críticos e Gravidade de Sinistros (BR-282 / BR-480, SC)
+Script de ingestão — Pontos Críticos e Gravidade de Sinistros em SC
 =====================================================================================
 
 O que este script faz:
   1) Baixa os CSVs anuais de acidentes da PRF (Dados Abertos, "agrupados por ocorrência").
-  2) Concatena os anos, filtra UF == 'SC' e BR in {282, 480}.
+    2) Concatena os anos e filtra UF == 'SC', mantendo todas as BRs do estado.
   3) Faz merge com a planilha do SNV (DNIT), casando cada acidente ao trecho
      rodoviário correspondente pelo (BR, UF, km), trazendo atributos de engenharia
      da via (superfície, extensão do trecho, jurisdição etc.).
@@ -34,6 +34,7 @@ Uso:
 
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
@@ -52,25 +53,24 @@ OUT_DIR = DATA_DIR / "processed"
 # quanto mais anos, mais volume para o treino, mas atenção a mudanças de
 # metodologia de coleta da PRF ao longo do tempo.
 GDRIVE_FILE_IDS: dict[int, str] = {
-    2026: "1A3IirNm0AzRaSosA1IS94DOVmvKsn0Ol",
+    # 2026: "1A3IirNm0AzRaSosA1IS94DOVmvKsn0Ol",
     2025: "1-G3MdmHBt6CprDwcW99xxC4BZ2DU5ryR",
     2024: "14lB0vqMFkaZj8HZ44b0njYgxs9nAN8KO",
     2023: "1-WO3SfNrwwZ5_l7fRTiwBKRw7mi1-HUq",
     2022: "1PRQjuV5gOn_nn6UNvaJyVURDIfbSAK4-",
     2021: "12xH8LX9aN2gObR766YN3cMcuycwyCJDz",
     2020: "1esu6IiH5TVTxFoedv6DBGDd01Gvi8785",
-    2019: "1pN3fn2wY34GH6cY-gKfbxRJJBFE0lb_l",
-    2018: "1cM4IgGMIiR-u4gBIH5IEe3DcvBvUzedi",
-    2017: "1HPLWt5f_l4RIX3tKjI4tUXyZOev52W0N",
+    # 2019: "1pN3fn2wY34GH6cY-gKfbxRJJBFE0lb_l",
+    # 2018: "1cM4IgGMIiR-u4gBIH5IEe3DcvBvUzedi",
+    # 2017: "1HPLWt5f_l4RIX3tKjI4tUXyZOev52W0N",
 }
 
 UF_ALVO = "SC"
-BRS_ALVO = {282, 480}
-
 # Aponte aqui para a planilha do SNV baixada manualmente do DNIT/VGEO
 SNV_LOCAL_PATH = DATA_DIR / "snv_base.csv"  # .xls também funciona, ver load_snv()
 
-FINAL_OUTPUT_PATH = Path("/mnt/user-data/outputs/sinistros_sc_br282_br480.csv")
+FINAL_OUTPUT_PATH = OUT_DIR / "sinistros_sc_todas_brs.csv"
+BR_SUMMARY_PATH = OUT_DIR / "brs_sc_resumo.csv"
 
 
 # ----------------------------------------------------------------------------
@@ -147,25 +147,104 @@ def normalize_prf_columns(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def _to_nullable_int(series: pd.Series) -> pd.Series:
+    """Converte identificadores para inteiro com suporte a nulos."""
+    normalized = (
+        series.astype(str)
+        .str.strip()
+        .replace({"": pd.NA, "nan": pd.NA, "None": pd.NA})
+        .str.replace(r"\.0+$", "", regex=True)
+        .str.extract(r"(-?\d+)", expand=False)
+    )
+    return pd.to_numeric(normalized, errors="coerce").astype("Int64")
+
+
+def _clean_decimal_text(value: object) -> str:
+    text = str(value).strip()
+    text = re.sub(r"[^0-9,\.\-+]", "", text)
+    if "," in text and "." in text:
+        # Usa como decimal o último separador; os demais viram milhares.
+        comma_pos = text.rfind(",")
+        dot_pos = text.rfind(".")
+        decimal_sep = "," if comma_pos > dot_pos else "."
+        thousands_sep = "." if decimal_sep == "," else ","
+        text = text.replace(thousands_sep, "")
+        text = text.replace(decimal_sep, ".")
+    elif "," in text:
+        text = text.replace(",", ".")
+    return text
+
+
+def _coerce_coord_value(value: object, limit: float) -> float | None:
+    if pd.isna(value):
+        return None
+
+    text = _clean_decimal_text(value)
+    if text in {"", "+", "-", ".", "+.", "-."}:
+        return None
+
+    parsed = pd.to_numeric(text, errors="coerce")
+    if pd.isna(parsed):
+        return None
+
+    number = float(parsed)
+    if abs(number) <= limit:
+        return number
+
+    digits = re.sub(r"\D", "", text)
+    if not digits:
+        return None
+    sign = -1 if text.startswith("-") else 1
+    scaled = float(int(digits)) * sign
+    while abs(scaled) > limit and scaled != 0:
+        scaled /= 10.0
+    return scaled if abs(scaled) <= limit else None
+
+
+def normalize_prf_values(df: pd.DataFrame) -> pd.DataFrame:
+    """Padroniza tipos sensíveis (id, km, br, latitude, longitude)."""
+    df = df.copy()
+
+    for id_col in ("id", "id_acidente"):
+        if id_col in df.columns:
+            df[id_col] = _to_nullable_int(df[id_col])
+
+    if "km" in df.columns:
+        df["km"] = pd.to_numeric(
+            df["km"].astype(str).str.replace(",", ".", regex=False),
+            errors="coerce",
+        )
+
+    if "br" in df.columns:
+        df["br"] = pd.to_numeric(
+            df["br"].astype(str).str.extract(r"(\d+)", expand=False),
+            errors="coerce",
+        ).astype("Int64")
+
+    if "latitude" in df.columns:
+        df["latitude"] = df["latitude"].map(lambda value: _coerce_coord_value(value, 90.0))
+    if "longitude" in df.columns:
+        df["longitude"] = df["longitude"].map(lambda value: _coerce_coord_value(value, 180.0))
+
+    if "br" in df.columns:
+        df["fora_br"] = df["br"].fillna(-1).eq(0)
+        df["relevancia_rodovia"] = df["fora_br"].map(
+            {True: "baixa (fora de BR)", False: "alta (em BR)"}
+        )
+
+    return df
+
+
 # ----------------------------------------------------------------------------
-# 2) FILTRO SC / BR-282 / BR-480
+# 2) FILTRO SC / TODAS AS BRs
 # ----------------------------------------------------------------------------
 
 def filter_sc_brs(df: pd.DataFrame) -> pd.DataFrame:
-    df = df.copy()
-    # coluna de km costuma vir como string com vírgula decimal
-    if "km" in df.columns:
-        df["km"] = (
-            df["km"].astype(str).str.replace(",", ".", regex=False).astype(float, errors="ignore")
-        )
-    if "br" in df.columns:
-        df["br"] = pd.to_numeric(df["br"], errors="coerce")
+    df = normalize_prf_values(df)
 
     mask = pd.Series(True, index=df.index)
     if "uf" in df.columns:
         mask &= df["uf"].astype(str).str.upper().str.strip() == UF_ALVO
-    if "br" in df.columns:
-        mask &= df["br"].isin(BRS_ALVO)
     return df[mask].reset_index(drop=True)
 
 
@@ -260,7 +339,7 @@ def main() -> None:
             df = normalize_prf_columns(df)
             df["ano_arquivo"] = year
             df_sc = filter_sc_brs(df)
-            print(f"[{year}] {len(df)} registros nacionais -> {len(df_sc)} em SC/BR-282/BR-480")
+            print(f"[{year}] {len(df)} registros nacionais -> {len(df_sc)} em SC/todas as BRs")
             frames.append(df_sc)
         except Exception as e:  # noqa: BLE001
             print(f"[{year}] ERRO: {e}", file=sys.stderr)
@@ -270,14 +349,26 @@ def main() -> None:
         return
 
     acidentes = pd.concat(frames, ignore_index=True)
-    interim_path = OUT_DIR / "acidentes_sc_br282_br480_bruto.csv"
-    acidentes.to_csv(interim_path, index=False)
+    interim_path = OUT_DIR / "acidentes_sc_todas_brs_bruto.csv"
+    # Usa decimal "," para evitar que Excel/LibreOffice em pt-BR leia latitude/longitude
+    # como texto ou aplique separação errada de milhares.
+    acidentes.to_csv(interim_path, index=False, decimal=",")
     print(f"\nBase filtrada (sem merge SNV) salva em: {interim_path} ({len(acidentes)} linhas)")
+
+    br_summary = (
+        acidentes.groupby("br", dropna=False)
+        .size()
+        .rename("quantidade_acidentes")
+        .reset_index()
+        .sort_values("br", na_position="last")
+    )
+    br_summary.to_csv(BR_SUMMARY_PATH, index=False)
+    print(f"Resumo das BRs em SC salvo em: {BR_SUMMARY_PATH}")
 
     snv = load_snv(SNV_LOCAL_PATH)
     final = merge_with_snv(acidentes, snv)
 
-    final.to_csv(FINAL_OUTPUT_PATH, index=False)
+    final.to_csv(FINAL_OUTPUT_PATH, index=False, decimal=",")
     print(f"\nDataset final pronto para EDA: {FINAL_OUTPUT_PATH} ({len(final)} linhas, {final.shape[1]} colunas)")
 
     # resumo rápido, útil como primeiro check da EDA
