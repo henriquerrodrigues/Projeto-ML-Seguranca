@@ -1,5 +1,5 @@
 """
-Dashboard + ML · Sinistros nas Rodovias Federais de SC — PRF 2020‑2025
+Dashboard + ML · Sinistros nas Rodovias Federais de SC — PRF
 =======================================================================
 """
 
@@ -240,7 +240,7 @@ with st.sidebar:
         grav_sel = st.multiselect("Classificação", grav_disp, default=grav_disp)
 
     st.divider()
-    st.caption("Fonte: PRF · SC · 2020‑2025")
+    st.caption("Fonte: PRF · SC ")
     if st.button("🔄 Limpar filtros"):
         st.rerun()
 
@@ -273,7 +273,7 @@ df = df_full[
 st.title("🚦 Sinistros nas Rodovias Federais de Santa Catarina")
 st.caption(
     f"Exibindo **{len(df):,}** registros com os filtros atuais "
-    f"(total histórico: {len(df_full):,}) · PRF · SC · 2020‑2025"
+    f"(total histórico: {len(df_full):,}) · PRF · SC "
     .replace(",",".")
 )
 
@@ -1033,7 +1033,7 @@ prevê a probabilidade de gravidade *antes* do evento, sem usar dados pós‑aci
 **Features numéricas:** `{', '.join(features_num_ml)}`
 
 #### ⚠️ Limitações
-- Treinado com dados históricos de SC (2020‑2025).
+- Treinado com dados históricos de SC.
 - `tipo_acidente` é informado *após* o evento na fonte PRF — no simulador representa o **tipo provável esperado** (ex: "colisão frontal em pista molhada com neblina").
 - Dados desbalanceados: fatais são ~5‑8% dos casos. Compensado com `class_weight="balanced"`.
 - **Não substitui** julgamento operacional de agentes da PRF.
@@ -1181,7 +1181,7 @@ with tab5:
 st.markdown("""
 <div class="app-footer">
     Desenvolvido por Henrique Ribeiro Rodrigues e Jean Gondorek — Planejamento e Gestão de Projetos<br>
-    &copy; 2026 Todos os direitos reservados · Dados: Polícia Rodoviária Federal (PRF) · SC · 2020‑2025
+    &copy; 2026 Todos os direitos reservados · Dados: Polícia Rodoviária Federal (PRF) · SC
 </div>
 """, unsafe_allow_html=True)
 
