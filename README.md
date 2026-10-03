@@ -17,7 +17,7 @@ Desenvolver uma plataforma de apoio à decisão em segurança viária baseada em
 ## 2. Escopo do Projeto (Sprint 0)
 
 * **Recorte Geográfico:** Rodovias federais que cortam o estado de Santa Catarina (`uf == 'SC'`).
-* **Período dos Dados:** Ocorrências e autuações de 2020 a 2026.
+* **Período dos Dados:** Ocorrências e autuações de 2017 a 2026.
 * **Fontes de Dados:** Portal de Dados Abertos da Polícia Rodoviária Federal (Bases do Boletim de Acidente de Trânsito - BAT e Sistema de Infrações - SISCOM/AUTOPRF).
 * **Variável-Alvo (Target do ML):** `classificacao_acidente` (*Sem Vítimas*, *Com Vítimas Feridas*, *Com Vítimas Fatais*).
 * **Modelos Previstos:**
