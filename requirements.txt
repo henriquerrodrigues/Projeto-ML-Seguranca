@@ -23,7 +23,7 @@ folium>=0.20.0  # Mapas interativos (heatmap e clusters de acidentes)
 plotly>=5.20.0  # Gráficos interativos do dashboard Streamlit
 
 # Dashboard web
-streamlit>=1.35.0
+streamlit>=1.46.0
 Pillow>=10.0.0          # Carregamento do favicon do dashboard
 streamlit-folium>=0.21  # Integração folium ↔ Streamlit (mapas interativos)
 

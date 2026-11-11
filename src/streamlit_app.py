@@ -57,6 +57,33 @@ DIAS_NOMES = {0:"Seg",1:"Ter",2:"Qua",3:"Qui",4:"Sex",5:"Sáb",6:"Dom"}
 EPOCAS_ORDEM = ["🌞 Verão (Dez‑Fev)","🍂 Outono (Mar‑Mai)",
                 "❄️ Inverno (Jun‑Ago)","🌸 Primavera (Set‑Nov)"]
 
+
+def _responsive_layout(fig, **extra):
+    """Aplica configurações de layout amigáveis para mobile em qualquer figura Plotly."""
+    # Respeita showlegend=False já definido no gráfico
+    current_legend_visible = fig.layout.showlegend
+    legend_cfg = {}
+    if current_legend_visible is not False:
+        legend_cfg = dict(
+            orientation="h",
+            yanchor="bottom",
+            y=-0.25,
+            xanchor="center",
+            x=0.5,
+            font=dict(size=10),
+        )
+
+    fig.update_layout(
+        autosize=True,
+        margin=dict(l=10, r=10, t=40, b=30, **{k: v for k, v in extra.pop("margin", {}).items()}),
+        font=dict(family=FONT, size=12),
+        legend=legend_cfg if legend_cfg else None,
+        **extra,
+    )
+    fig.update_xaxes(automargin=True, tickfont=dict(size=10))
+    fig.update_yaxes(automargin=True, tickfont=dict(size=10))
+    return fig
+
 # ──────────────────────────────────────────────────────────────────────────────
 # LAYOUT BASE
 # ──────────────────────────────────────────────────────────────────────────────
@@ -75,6 +102,7 @@ html,body,[class*="css"]{font-family:'Roboto',sans-serif;}
 .kpi-card{
     background:rgba(42,120,214,.07);border-left:4px solid #2a78d6;
     border-radius:6px;padding:.75rem 1rem;margin:.4rem 0;font-size:.9rem;
+    word-wrap:break-word;overflow-wrap:break-word;
 }
 .kpi-red{border-color:#d03b3b;background:rgba(208,59,59,.07);}
 .kpi-green{border-color:#1b9e77;background:rgba(27,158,119,.07);}
@@ -93,6 +121,115 @@ html,body,[class*="css"]{font-family:'Roboto',sans-serif;}
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 [data-testid="stPlotlyChart"],[data-testid="stMetric"]{animation:fadeUp .5s ease-out both;}
+
+/* ── RESPONSIVIDADE MOBILE ── */
+
+/* Métricas (KPI cards nativos) ficam mais compactas */
+@media (max-width: 768px) {
+    /* Título menor em mobile */
+    h1 { font-size: 1.35rem !important; line-height: 1.3 !important; }
+    h2 { font-size: 1.15rem !important; }
+    h3 { font-size: 1.05rem !important; }
+
+    /* Métricas empilham verticalmente e ficam menores */
+    [data-testid="stMetric"] {
+        padding: 0.3rem 0.5rem !important;
+    }
+    [data-testid="stMetricValue"] {
+        font-size: 1.1rem !important;
+    }
+    [data-testid="stMetricLabel"] {
+        font-size: 0.78rem !important;
+    }
+
+    /* Colunas se empilham verticalmente em mobile */
+    [data-testid="stHorizontalBlock"] {
+        flex-wrap: wrap !important;
+    }
+    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+        min-width: 100% !important;
+        flex: 1 1 100% !important;
+    }
+
+    /* KPI cards customizados */
+    .kpi-card {
+        font-size: 0.82rem !important;
+        padding: 0.6rem 0.8rem !important;
+    }
+
+    /* Tags */
+    .tag { font-size: 0.72rem !important; }
+
+    /* Tabs: scroll horizontal com indicação visual */
+    [data-testid="stTabs"] [role="tablist"] {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        flex-wrap: nowrap !important;
+        gap: 0 !important;
+    }
+    [data-testid="stTabs"] button[role="tab"] {
+        font-size: 0.78rem !important;
+        padding: 0.4rem 0.6rem !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* Gráficos Plotly: altura mínima para não ficarem minúsculos */
+    [data-testid="stPlotlyChart"] {
+        min-height: 280px !important;
+    }
+
+    /* Tabelas: scroll horizontal */
+    [data-testid="stDataFrame"],
+    [data-testid="stTable"] {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Sidebar: ajuste de largura quando aberta */
+    [data-testid="stSidebar"] {
+        min-width: 260px !important;
+        max-width: 280px !important;
+    }
+    [data-testid="stSidebar"] [data-testid="stImage"] {
+        max-width: 130px !important;
+    }
+
+    /* Expanders */
+    [data-testid="stExpander"] summary {
+        font-size: 0.88rem !important;
+    }
+
+    /* Footer */
+    .app-footer {
+        font-size: 0.72rem !important;
+        padding-top: 0.6rem !important;
+    }
+
+    /* Margens do conteúdo principal */
+    .block-container {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+        padding-top: 1rem !important;
+    }
+}
+
+/* Telas intermediárias (tablets) */
+@media (min-width: 769px) and (max-width: 1024px) {
+    [data-testid="stHorizontalBlock"] {
+        flex-wrap: wrap !important;
+    }
+    /* Colunas ficam em pares (2 por linha) em tablets */
+    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+        min-width: 48% !important;
+        flex: 1 1 48% !important;
+    }
+    .block-container {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -334,7 +471,8 @@ with tab1:
             xaxis=dict(type="category", categoryorder="total descending"),
             font_family=FONT, margin=dict(t=10),
         )
-        st.plotly_chart(fig, use_container_width=True)
+        _responsive_layout(fig)
+        st.plotly_chart(fig, width="stretch")
 
     with r1:
         st.subheader("Gravidade por BR (%)")
@@ -356,7 +494,8 @@ with tab1:
             xaxis=dict(type="category", categoryorder="total descending"),
             font_family=FONT, margin=dict(t=10),
         )
-        st.plotly_chart(fig, use_container_width=True)
+        _responsive_layout(fig)
+        st.plotly_chart(fig, width="stretch")
 
     l2,r2 = st.columns(2)
 
@@ -367,7 +506,8 @@ with tab1:
                       markers=True, color_discrete_sequence=CORES)
         fig.update_layout(xaxis_title="Ano",yaxis_title="Mortos",
                           legend_title="BR",font_family=FONT,margin=dict(t=10))
-        st.plotly_chart(fig, use_container_width=True)
+        _responsive_layout(fig)
+        st.plotly_chart(fig, width="stretch")
 
     with r2:
         st.subheader("Taxa de Fatalidade por Período do Dia")
@@ -386,7 +526,8 @@ with tab1:
         fig.update_traces(textposition="outside")
         fig.update_layout(showlegend=False,xaxis_title="Período",
                           yaxis_title="% Fatais",font_family=FONT,margin=dict(t=10))
-        st.plotly_chart(fig, use_container_width=True)
+        _responsive_layout(fig)
+        st.plotly_chart(fig, width="stretch")
 
     l3,r3 = st.columns(2)
 
@@ -400,7 +541,8 @@ with tab1:
         fig.update_traces(textposition="outside")
         fig.update_layout(yaxis_title="",xaxis_title="Sinistros",
                           font_family=FONT,margin=dict(t=10))
-        st.plotly_chart(fig, use_container_width=True)
+        _responsive_layout(fig)
+        st.plotly_chart(fig, width="stretch")
 
     with r3:
         st.subheader("Taxa de Fatalidade por Tipo de Acidente")
@@ -418,7 +560,7 @@ with tab1:
         fig.update_traces(textposition="outside")
         fig.update_layout(yaxis_title="",xaxis_title="% Acidentes Fatais",
                           coloraxis_showscale=False,font_family=FONT,margin=dict(t=10))
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     l4,r4 = st.columns(2)
 
@@ -433,7 +575,8 @@ with tab1:
         fig.update_traces(textposition="outside")
         fig.update_layout(showlegend=False,xaxis_title="",yaxis_title="Sinistros",
                           font_family=FONT,margin=dict(t=10))
-        st.plotly_chart(fig, use_container_width=True)
+        _responsive_layout(fig)
+        st.plotly_chart(fig, width="stretch")
 
     with r4:
         st.subheader("Sinistros e Mortos por Dia da Semana")
@@ -456,7 +599,8 @@ with tab1:
                         overlaying="y", side="right"),
             legend=dict(x=.01,y=.99),font_family=FONT,margin=dict(t=10)
         )
-        st.plotly_chart(fig, use_container_width=True)
+        _responsive_layout(fig)
+        st.plotly_chart(fig, width="stretch")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -483,7 +627,8 @@ with tab2:
     fig.update_traces(textposition="outside")
     fig.update_layout(xaxis_title="Época",yaxis_title="Sinistros",
                       legend_title="Gravidade",font_family=FONT)
-    st.plotly_chart(fig, use_container_width=True)
+    _responsive_layout(fig)
+    st.plotly_chart(fig, width="stretch")
 
     col1, col2 = st.columns(2)
 
@@ -503,7 +648,9 @@ with tab2:
         fig.update_traces(textposition="outside")
         fig.update_layout(showlegend=False,xaxis_title="",
                           yaxis_title="% Fatais",font_family=FONT)
-        st.plotly_chart(fig, use_container_width=True)
+        _responsive_layout(fig)
+        _responsive_layout(fig)
+    st.plotly_chart(fig, width="stretch")
 
     with col2:
         st.subheader("🏖️ Litoral vs Interior por Época")
@@ -522,7 +669,9 @@ with tab2:
         fig.update_traces(textposition="outside")
         fig.update_layout(xaxis_title="",yaxis_title="% Fatais",
                           legend_title="Zona",font_family=FONT)
-        st.plotly_chart(fig, use_container_width=True)
+        _responsive_layout(fig)
+        _responsive_layout(fig)
+    st.plotly_chart(fig, width="stretch")
 
     st.subheader("📅 Sazonalidade Mensal — BR‑101 no Litoral (todos os anos)")
     df101 = df[(df["br"]=="101") & (df["is_litoral"])].dropna(subset=["mes_num"])
@@ -551,7 +700,8 @@ with tab2:
                     overlaying="y", side="right"),
         legend=dict(x=.01,y=.99),font_family=FONT
     )
-    st.plotly_chart(fig, use_container_width=True)
+    _responsive_layout(fig)
+    st.plotly_chart(fig, width="stretch")
 
     st.subheader("⚠️ Causas Predominantes: Verão vs Resto do Ano")
     df_causa = df.dropna(subset=["causa_acidente","mes_num"]).copy()
@@ -571,7 +721,8 @@ with tab2:
     )
     fig.update_layout(yaxis_title="",xaxis_title="Sinistros",
                       legend_title="Período",font_family=FONT)
-    st.plotly_chart(fig, use_container_width=True)
+    _responsive_layout(fig)
+    st.plotly_chart(fig, width="stretch")
 
     df_lit_ver = df[df["mes_num"].isin([12,1,2]) & df["is_litoral"]]
     df_int_ver = df[df["mes_num"].isin([12,1,2]) & ~df["is_litoral"]]
@@ -674,7 +825,8 @@ with tab3:
             fig.update_traces(textposition="outside")
             fig.update_layout(yaxis_title="",xaxis_title="Sinistros",
                                font_family=FONT,margin=dict(t=10))
-            st.plotly_chart(fig, use_container_width=True)
+            _responsive_layout(fig)
+            st.plotly_chart(fig, width="stretch")
 
         with col_d2:
             st.subheader(f"Gravidade por Época — BR‑{br_diag}")
@@ -688,7 +840,8 @@ with tab3:
                          barmode="stack", color_discrete_map=COR_GRAVIDADE)
             fig.update_layout(xaxis_title="",yaxis_title="Sinistros",
                                legend_title="Gravidade",font_family=FONT)
-            st.plotly_chart(fig, use_container_width=True)
+            _responsive_layout(fig)
+            st.plotly_chart(fig, width="stretch")
 
         st.subheader(f"🏙️ Municípios com Mais Acidentes Graves — BR‑{br_diag}")
         mun_criticos = (
@@ -710,7 +863,8 @@ with tab3:
             fig.update_layout(yaxis_title="",xaxis_title="Acidentes Fatais",
                                coloraxis_colorbar_title="Mortos",
                                font_family=FONT)
-            st.plotly_chart(fig, use_container_width=True)
+            _responsive_layout(fig)
+            st.plotly_chart(fig, width="stretch")
 
         col_p1, col_p2 = st.columns(2)
         with col_p1:
@@ -725,7 +879,8 @@ with tab3:
                           color_discrete_sequence=["#d03b3b"])
             fig.update_layout(xaxis_title="Hora do Dia",yaxis_title="% Fatais",
                                font_family=FONT)
-            st.plotly_chart(fig, use_container_width=True)
+            _responsive_layout(fig)
+            st.plotly_chart(fig, width="stretch")
 
         with col_p2:
             st.subheader(f"🌧️ Condição Climática vs. Fatalidade — BR‑{br_diag}")
@@ -743,7 +898,8 @@ with tab3:
             fig.update_traces(textposition="outside")
             fig.update_layout(yaxis_title="",xaxis_title="% Fatais",
                                coloraxis_showscale=False,font_family=FONT)
-            st.plotly_chart(fig, use_container_width=True)
+            _responsive_layout(fig)
+            st.plotly_chart(fig, width="stretch")
 
         st.subheader(f"💡 Sugestões de Melhoria para as Top Causas — BR‑{br_diag}")
         top_causas_list = causas_br.head(10).index.tolist()
@@ -760,7 +916,7 @@ with tab3:
                 "Ação Recomendada": st.column_config.TextColumn("Ação Recomendada", width="large"),
                 "Qtd": st.column_config.NumberColumn("Sinistros"),
             },
-            hide_index=True, use_container_width=True
+            hide_index=True, width="stretch"
         )
 
         st.subheader(f"📆 Taxa de Fatalidade por Dia da Semana — BR‑{br_diag}")
@@ -779,7 +935,8 @@ with tab3:
         fig.update_traces(textposition="outside")
         fig.update_layout(showlegend=False,xaxis_title="",yaxis_title="% Fatais",
                           font_family=FONT)
-        st.plotly_chart(fig, use_container_width=True)
+        _responsive_layout(fig)
+        st.plotly_chart(fig, width="stretch")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -870,7 +1027,7 @@ prevê a probabilidade de gravidade *antes* do evento, sem usar dados pós‑aci
             )
 
         st.divider()
-        prever = st.button("🔮 Prever Gravidade", type="primary", use_container_width=True)
+        prever = st.button("🔮 Prever Gravidade", type="primary", width="stretch")
 
         if prever:
             entrada = {
@@ -928,7 +1085,8 @@ prevê a probabilidade de gravidade *antes* do evento, sem usar dados pós‑aci
                         xaxis_title="Classe",
                         font_family=FONT,
                     )
-                    st.plotly_chart(fig, use_container_width=True)
+                    _responsive_layout(fig)
+                    st.plotly_chart(fig, width="stretch")
 
                 with res2:
                     risk = {
@@ -959,7 +1117,8 @@ prevê a probabilidade de gravidade *antes* do evento, sem usar dados pós‑aci
                         polar=dict(radialaxis=dict(visible=True,range=[0,1])),
                         showlegend=False, font_family=FONT,
                     )
-                    st.plotly_chart(fig_r, use_container_width=True)
+                    _responsive_layout(fig_r)
+                    st.plotly_chart(fig_r, width="stretch")
 
                 if pred_cls == 2:
                     st.error("🚨 **Alto risco de acidente fatal.** Reveja velocidade, nível de cansaço e condição da via antes de prosseguir.")
@@ -1023,7 +1182,8 @@ prevê a probabilidade de gravidade *antes* do evento, sem usar dados pós‑aci
             aspect="auto",
         )
         fig_heat.update_layout(font_family=FONT,coloraxis_colorbar_title="% Fatais")
-        st.plotly_chart(fig_heat, use_container_width=True)
+        _responsive_layout(fig_heat)
+        st.plotly_chart(fig_heat, width="stretch")
         st.caption("Leitura: quanto mais vermelho, maior a taxa de acidentes fatais naquela BR × época.")
 
         with st.expander("ℹ️ Sobre o Modelo e Limitações"):
@@ -1052,23 +1212,25 @@ prevê a probabilidade de gravidade *antes* do evento, sem usar dados pós‑aci
 with tab5:
     st.header("🗺️ Mapa de Risco Interativo")
 
-    cm1, cm2 = st.columns([1,3])
-
-    with cm1:
-        st.subheader("Filtros do Mapa")
-        grav_mapa = st.multiselect(
-            "Gravidade", grav_disp, default=["Com Vítimas Fatais","Com Vítimas Feridas"],
-            key="mapa_grav"
-        )
-        epocas_mapa = st.multiselect(
-            "Época", EPOCAS_ORDEM, default=EPOCAS_ORDEM, key="mapa_epoca"
-        )
-        max_pts = st.slider("Máx. pontos", 500, 12000, 6000, 500, key="mapa_pts")
-        cor_por = st.radio(
-            "Colorir por",
-            ["Gravidade","Época","Tipo de Pista","Condição Climática"],
-            key="mapa_cor"
-        )
+    with st.expander("⚙️ Filtros do Mapa", expanded=True):
+        mf1, mf2, mf3, mf4 = st.columns(4)
+        with mf1:
+            grav_mapa = st.multiselect(
+                "Gravidade", grav_disp, default=["Com Vítimas Fatais","Com Vítimas Feridas"],
+                key="mapa_grav"
+            )
+        with mf2:
+            epocas_mapa = st.multiselect(
+                "Época", EPOCAS_ORDEM, default=EPOCAS_ORDEM, key="mapa_epoca"
+            )
+        with mf3:
+            max_pts = st.slider("Máx. pontos", 500, 12000, 6000, 500, key="mapa_pts")
+        with mf4:
+            cor_por = st.radio(
+                "Colorir por",
+                ["Gravidade","Época","Tipo de Pista","Condição Climática"],
+                key="mapa_cor", horizontal=True
+            )
 
     mapa_df = df.dropna(subset=["latitude","longitude","classificacao_acidente"])
     if grav_mapa:
@@ -1082,50 +1244,58 @@ with tab5:
     if len(mapa_df) > max_pts:
         mapa_df = mapa_df.sample(max_pts, random_state=42)
 
-    with cm2:
-        if mapa_df.empty:
-            st.warning("Nenhum ponto com esses filtros. Ajuste na barra lateral ou nos filtros do mapa.")
-        else:
-            cor_col_map = {
-                "Gravidade":          ("classificacao_acidente", COR_GRAVIDADE),
-                "Época":              ("epoca", None),
-                "Tipo de Pista":      ("tipo_pista", None),
-                "Condição Climática": ("condicao_metereologica", None),
-            }
-            color_col, color_map = cor_col_map[cor_por]
+    if mapa_df.empty:
+        st.warning("Nenhum ponto com esses filtros. Ajuste na barra lateral ou nos filtros do mapa.")
+    else:
+        cor_col_map = {
+            "Gravidade":          ("classificacao_acidente", COR_GRAVIDADE),
+            "Época":              ("epoca", None),
+            "Tipo de Pista":      ("tipo_pista", None),
+            "Condição Climática": ("condicao_metereologica", None),
+        }
+        color_col, color_map = cor_col_map[cor_por]
 
-            kwargs_mapa = dict(
-                lat="latitude", lon="longitude",
-                color=color_col,
-                hover_data={
-                    "municipio":True,"br":True,"km":True,
-                    "causa_acidente":True,"tipo_acidente":True,
-                    "data_inversa":True,"classificacao_acidente":True,
-                },
-                zoom=7, center={"lat":-27.5,"lon":-50.0},
-                opacity=0.65,
-                title=f"Mapa de Sinistros — {len(mapa_df):,} pontos".replace(",","."),
+        kwargs_mapa = dict(
+            lat="latitude", lon="longitude",
+            color=color_col,
+            hover_data={
+                "municipio":True,"br":True,"km":True,
+                "causa_acidente":True,"tipo_acidente":True,
+                "data_inversa":True,"classificacao_acidente":True,
+            },
+            zoom=7, center={"lat":-27.5,"lon":-50.0},
+            opacity=0.65,
+            title=f"Mapa de Sinistros — {len(mapa_df):,} pontos".replace(",","."),
+        )
+        if color_map:
+            kwargs_mapa["color_discrete_map"] = color_map
+
+        _map_legend = dict(
+            orientation="h", yanchor="top", y=-0.02,
+            xanchor="center", x=0.5, font=dict(size=9),
+        )
+
+        if hasattr(px, "scatter_map"):
+            fig_mapa = px.scatter_map(mapa_df, **kwargs_mapa)
+            fig_mapa.update_layout(
+                map_style="carto-positron",
+                margin=dict(l=0,r=0,t=40,b=0),
+                legend=_map_legend,
+                legend_title=cor_por,
+                font_family=FONT,
+                height=550,
             )
-            if color_map:
-                kwargs_mapa["color_discrete_map"] = color_map
-
-            if hasattr(px, "scatter_map"):
-                fig_mapa = px.scatter_map(mapa_df, **kwargs_mapa)
-                fig_mapa.update_layout(
-                    map_style="carto-positron",
-                    margin=dict(l=0,r=0,t=40,b=0),
-                    legend_title=cor_por,
-                    font_family=FONT,
-                )
-            else:
-                fig_mapa = px.scatter_mapbox(mapa_df, **kwargs_mapa)
-                fig_mapa.update_layout(
-                    mapbox_style="carto-positron",
-                    margin=dict(l=0,r=0,t=40,b=0),
-                    legend_title=cor_por,
-                    font_family=FONT,
-                )
-            st.plotly_chart(fig_mapa, use_container_width=True)
+        else:
+            fig_mapa = px.scatter_mapbox(mapa_df, **kwargs_mapa)
+            fig_mapa.update_layout(
+                mapbox_style="carto-positron",
+                margin=dict(l=0,r=0,t=40,b=0),
+                legend=_map_legend,
+                legend_title=cor_por,
+                font_family=FONT,
+                height=550,
+            )
+        st.plotly_chart(fig_mapa, width="stretch")
 
     st.subheader("🔥 Hotspots — Municípios e KMs Mais Críticos")
     ht1, ht2 = st.columns(2)
@@ -1148,7 +1318,7 @@ with tab5:
                     "municipio":"Município","br":"BR",
                     "graves":"Acidentes Graves","mortos":"Mortos","feridos":"Feridos"
                 }),
-                hide_index=True, use_container_width=True
+                hide_index=True, width="stretch"
             )
 
     with ht2:
@@ -1170,7 +1340,7 @@ with tab5:
                 hot_km[["trecho","fatais","mortos"]].rename(columns={
                     "trecho":"Trecho","fatais":"Acidentes Fatais","mortos":"Mortos"
                 }),
-                hide_index=True, use_container_width=True
+                hide_index=True, width="stretch"
             )
 
 
