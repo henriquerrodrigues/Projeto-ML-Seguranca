@@ -1,4 +1,5 @@
 # Plataforma Inteligente para Apoio à Decisão em Segurança Viária
+link streamlit: https://projeto-ml-seguranca.streamlit.app/
 
 Projeto acadêmico desenvolvido na Universidade Federal da Fronteira Sul (UFFS) para a disciplina de PGP, focado no mapeamento de manchas críticas (*hotspots*) e na predição da severidade de sinistros de trânsito em rodovias federais.
 
